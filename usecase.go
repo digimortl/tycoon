@@ -82,5 +82,5 @@ func destinationCodesFromArgs() []string {
 
 func main() {
 	destCodes := destinationCodesFromArgs()
-	fmt.Println(UseCase(destCodes...))
+	UseCase(destCodes...)
 }

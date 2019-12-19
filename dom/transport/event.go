@@ -1,13 +1,13 @@
 package transport
 
 import (
-	"fmt"
+	"time"
+
 	"github.com/digimortl/tycoon/dom/transmap"
 	"github.com/digimortl/tycoon/dom/warehouse"
-	"time"
 )
 
-type DomainEvent interface {}
+type DomainEvent interface{}
 
 type Arrived struct {
 	occurredAt  time.Time
@@ -39,19 +39,4 @@ type Unloaded struct {
 	transport   string
 	shipmentOpt transmap.ShipmentOption
 	duration    time.Duration
-}
-
-func PrintEvent(anEvent DomainEvent) {
-	switch anEvent.(type) {
-	case Arrived:
-		fmt.Printf("Arrived%+v\n", anEvent)
-	case Departed:
-		fmt.Printf("Departed%+v\n", anEvent)
-	case Loaded:
-		fmt.Printf("Loaded%+v\n", anEvent)
-	case Unloaded:
-		fmt.Printf("Unloaded%+v\n", anEvent)
-	default:
-		fmt.Printf("Unknown%+v\n", anEvent)
-	}
 }
