@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"os"
+	"strings"
 	"time"
 
 	m "github.com/digimortl/tycoon/dom/transmap"
@@ -74,13 +76,13 @@ func UseCase(destinationCodes ...warehouse.LocationCode) time.Duration {
 	return sim.CurrentTime.Sub(time.Time{})
 }
 
+func destinationCodesFromArgs() []string {
+	return strings.Split(strings.Join(os.Args[1:], ""), "")
+}
+
 func main() {
-	//fmt.Println(UseCase("A")) // 5
-	//fmt.Println(UseCase("A", "B")) // 5
-	//fmt.Println(UseCase("B", "B")) // 5
-	//fmt.Println(UseCase("A", "B", "B")) // 7
-	//fmt.Println(UseCase("A", "A", "B", "A", "B", "B", "A", "B")) // 29
-	fmt.Println(UseCase("A", "B", "B", "B", "A", "B", "A", "A", "A", "B", "B", "B")) // 41
+	destCodes := destinationCodesFromArgs()
+	fmt.Println(UseCase(destCodes...))
 }
 
 
