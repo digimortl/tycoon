@@ -135,12 +135,7 @@ func Truck(name string, transportMap *m.Map, sim *simula.Simulator) *Transport {
 		transportMap:   transportMap,
 		shipmentOption: m.Land,
 		sim:            sim,
-		home:           nil,
-		arriveAfter:    0,
-		cargoes:        nil,
 		capacity:       1,
-		timeToLoad:     0 * time.Hour,
-		timeToUnload:   0 * time.Hour,
 	}
 }
 
@@ -150,11 +145,21 @@ func Vessel(name string, transportMap *m.Map, sim *simula.Simulator) *Transport 
 		transportMap:   transportMap,
 		shipmentOption: m.Sea,
 		sim:            sim,
-		home:           nil,
-		arriveAfter:    0,
-		cargoes:        nil,
 		capacity:       1,
-		timeToLoad:     0 * time.Hour,
-		timeToUnload:   0 * time.Hour,
 	}
+}
+
+func (t *Transport) WithCapacity(cap int) *Transport {
+	t.capacity = cap
+	return t
+}
+
+func (t *Transport) WithLoadTime(dur time.Duration) *Transport {
+	t.timeToLoad = dur
+	return t
+}
+
+func (t *Transport) WithUnloadTime(dur time.Duration) *Transport {
+	t.timeToUnload = dur
+	return t
 }

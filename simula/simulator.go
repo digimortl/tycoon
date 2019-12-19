@@ -13,7 +13,7 @@ type Interface interface {
 }
 
 type Simulator struct {
-	CurrentTime     time.Time
+	currentTime     time.Time
 	activeProcesses sync.WaitGroup
 	scheduledEvents PriorityEventQueue
 	schedule        msgbox.MessageBox
@@ -22,7 +22,7 @@ type Simulator struct {
 
 func NewSimulator() *Simulator {
 	sim := Simulator{
-		CurrentTime:     time.Time{},
+		currentTime:     time.Time{},
 		activeProcesses: sync.WaitGroup{},
 		scheduledEvents: nil,
 		schedule:        make(msgbox.MessageBox),
@@ -89,11 +89,11 @@ func (s *Simulator) run() {
 }
 
 func (s *Simulator) WakeUpAfter(duration time.Duration) time.Time {
-	anEvent := s.NewEventAt(s.CurrentTime.Add(duration))
+	anEvent := s.NewEventAt(s.currentTime.Add(duration))
 	defer anEvent.Close()
 	msgbox.SendWithAck(s.schedule, anEvent)
 	anEvent.Suspend()
-	return s.CurrentTime
+	return s.currentTime
 }
 
 func (s *Simulator) Spawn(simulationObject Interface) {
@@ -108,7 +108,7 @@ func (s *Simulator) Stop() {
 	s.stop <- true
 }
 
-func (s *Simulator) Proceed(till func() bool) {
+func (s *Simulator) Proceed(till func() bool) time.Duration{
 	for {
 		s.waitTillProcessesGone()
 
@@ -117,7 +117,8 @@ func (s *Simulator) Proceed(till func() bool) {
 		}
 
 		anEvent := s.popAnEvent()
-		s.CurrentTime = anEvent.occurAt
+		s.currentTime = anEvent.occurAt
 		anEvent.Resume()
 	}
+	return s.currentTime.Sub(time.Time{})
 }
