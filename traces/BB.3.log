@@ -1,0 +1,11 @@
+{"time":0,"event":"ARRIVE","kind":"VESSEL","transport_id":"Vessel 1","location":"Port","cargo":[]}
+{"time":0,"event":"ARRIVE","kind":"TRUCK","transport_id":"Truck 2","location":"Factory","cargo":[]}
+{"time":0,"event":"ARRIVE","kind":"TRUCK","transport_id":"Truck 1","location":"Factory","cargo":[]}
+{"time":0,"event":"LOAD","kind":"TRUCK","transport_id":"Truck 2","duration":0,"cargo":[{"cargo_id":"00001","origin":"Factory","destination":"B"}]}
+{"time":0,"event":"LOAD","kind":"TRUCK","transport_id":"Truck 1","duration":0,"cargo":[{"cargo_id":"00002","origin":"Factory","destination":"B"}]}
+{"time":0,"event":"DEPART","kind":"TRUCK","transport_id":"Truck 2","location":"Factory","destination":"B","cargo":[{"cargo_id":"00001","origin":"Factory","destination":"B"}]}
+{"time":0,"event":"DEPART","kind":"TRUCK","transport_id":"Truck 1","location":"Factory","destination":"B","cargo":[{"cargo_id":"00002","origin":"Factory","destination":"B"}]}
+{"time":5,"event":"ARRIVE","kind":"TRUCK","transport_id":"Truck 2","location":"B","cargo":[{"cargo_id":"00001","origin":"Factory","destination":"B"}]}
+{"time":5,"event":"ARRIVE","kind":"TRUCK","transport_id":"Truck 1","location":"B","cargo":[{"cargo_id":"00002","origin":"Factory","destination":"B"}]}
+{"time":5,"event":"UNLOAD","kind":"TRUCK","transport_id":"Truck 2","duration":0}
+{"time":5,"event":"UNLOAD","kind":"TRUCK","transport_id":"Truck 1","duration":0}

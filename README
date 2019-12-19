@@ -1,0 +1,20 @@
+Transport Tycoon Exercises for DDD solution
+
+The idea to make use of this approach was brought from Smalltalk "Bluebook"
+(http://wiki.squeak.org/squeak/64) -- event-driven simulations. Sorry me for my PEP8!
+I violated it intentionally for the sake of respect of this great language.
+
+First usecase (Exercise 1)
+
+A -> 5 hours
+AB -> 5 hours
+BB -> 5 hours
+ABB -> 7 hours
+AABABBAB - > 29 hours
+ABBBABAAABBB -> 41 hours
+
+Second usecase (Exercise 2)
+
+ABBBABAAABBB -> 39 hours
+
+See ./traces directory to investigate domain events.
