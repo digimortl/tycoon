@@ -23,7 +23,7 @@ func SendAndReceive(box MessageBox, body interface{}) interface{} {
 	msg := newMessage(body)
 	defer close(msg.reply)
 	box <- msg
-	return <- msg.reply
+	return <-msg.reply
 }
 
 func SendWithAck(box MessageBox, body interface{}) {

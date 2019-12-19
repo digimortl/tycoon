@@ -1,8 +1,6 @@
 package transport
 
 import (
-	"fmt"
-	"strings"
 	"time"
 
 	m "github.com/digimortl/tycoon/dom/transmap"
@@ -11,16 +9,16 @@ import (
 )
 
 type Transport struct {
-	Name string
-	transportMap *m.Map
+	Name           string
+	transportMap   *m.Map
 	shipmentOption m.ShipmentOption
-	sim *simula.Simulator
-	home *w.Warehouse
-	arriveAfter time.Duration
-	cargoes []*w.Cargo
-	capacity int
-	timeToLoad time.Duration
-	timeToUnload time.Duration
+	sim            *simula.Simulator
+	home           *w.Warehouse
+	arriveAfter    time.Duration
+	cargoes        []*w.Cargo
+	capacity       int
+	timeToLoad     time.Duration
+	timeToUnload   time.Duration
 }
 
 func (t *Transport) isFull() bool {
@@ -66,39 +64,59 @@ func (t *Transport) findItineraryFrom(warehouse *w.Warehouse) m.Itinerary {
 	return itinerary.WithOption(t.shipmentOption)
 }
 
-func formatCargoes(cargoes []*w.Cargo) string {
-	var xs []string
-	for _, aCargo := range cargoes {
-		xs = append(xs, fmt.Sprintf("%s(%s->%s)", aCargo.TrackNumber, aCargo.Origin, aCargo.Destination))
-	}
-	return strings.Join(xs, ",")
-}
-
 func (t *Transport) Run() {
-	arrivalTime := t.holdFor(t.arriveAfter)
-	fmt.Printf("%s arrived at %s at %s\n", t.Name, t.home.Location, arrivalTime)
+	PrintEvent(Arrived{
+		occurredAt:  t.holdFor(t.arriveAfter),
+		transport:   t.Name,
+		shipmentOpt: t.shipmentOption,
+		atLocation:  t.home.Location,
+	})
 
 	t.loadCargoesFrom(t.home)
-	loadTime := t.holdFor(t.timeToLoad)
-	fmt.Printf("%s loaded cargoes %s at %s from %s\n", t.Name, formatCargoes(t.cargoes), loadTime, t.home.Location)
+	PrintEvent(Loaded{
+		occurredAt:  t.holdFor(t.timeToLoad),
+		transport:   t.Name,
+		shipmentOpt: t.shipmentOption,
+		duration:    t.timeToLoad,
+		cargoes:     append(t.cargoes),
+	})
 
 	itinerary := t.findItineraryFrom(t.home)
+	PrintEvent(Departed{
+		occurredAt:   t.holdFor(0),
+		transport:    t.Name,
+		shipmentOpt:  t.shipmentOption,
+		fromLocation: t.home.Location,
+		toLocation:   itinerary.Destination().Location,
+		cargoes:      append(t.cargoes),
+	})
 
-	departureTime := t.holdFor(0)
-	fmt.Printf("%s departed at %s from %s to %s\n", t.Name, departureTime, t.home.Location, itinerary.Destination().Location)
-
-	arrivalTime = t.holdFor(itinerary.TotalTimeToTravel())
-	fmt.Printf("%s arrived at %s at %s\n", t.Name, arrivalTime, itinerary.Destination().Location)
+	PrintEvent(Arrived{
+		occurredAt:  t.holdFor(itinerary.TotalTimeToTravel()),
+		transport:   t.Name,
+		shipmentOpt: t.shipmentOption,
+		atLocation:  itinerary.Destination().Location,
+		cargoes:     append(t.cargoes),
+	})
 
 	unloadTime := t.holdFor(t.timeToUnload)
 	t.unloadCargoesTo(itinerary.Destination())
-	fmt.Printf("%s unloaded cargoes %s at %s to %s\n", t.Name, formatCargoes(t.cargoes), unloadTime, itinerary.Destination().Location)
+	PrintEvent(Unloaded{
+		occurredAt:  unloadTime,
+		transport:   t.Name,
+		shipmentOpt: t.shipmentOption,
+		duration:    t.timeToUnload,
+	})
 
-	departureTime = t.holdFor(0)
-	fmt.Printf("%s Departed at %s from %s to %s \n", t.Name, departureTime, itinerary.Destination().Location, t.home.Location)
+	PrintEvent(Departed{
+		occurredAt:   t.holdFor(0),
+		transport:    t.Name,
+		shipmentOpt:  t.shipmentOption,
+		fromLocation: itinerary.Destination().Location,
+		toLocation:   t.home.Location,
+	})
 
 	t.arriveAfter = itinerary.TotalTimeToTravel()
-
 	t.Run()
 }
 
@@ -113,31 +131,30 @@ func (t *Transport) holdFor(duration time.Duration) time.Time {
 
 func Truck(name string, transportMap *m.Map, sim *simula.Simulator) *Transport {
 	return &Transport{
-		Name: name,
-		transportMap: transportMap,
+		Name:           name,
+		transportMap:   transportMap,
 		shipmentOption: m.Land,
-		sim: sim,
-		home: nil,
-		arriveAfter: 0,
-		cargoes: nil,
-		capacity: 1,
-		timeToLoad: 0 * time.Hour,
-		timeToUnload: 0 * time.Hour,
-
+		sim:            sim,
+		home:           nil,
+		arriveAfter:    0,
+		cargoes:        nil,
+		capacity:       1,
+		timeToLoad:     0 * time.Hour,
+		timeToUnload:   0 * time.Hour,
 	}
 }
 
 func Vessel(name string, transportMap *m.Map, sim *simula.Simulator) *Transport {
 	return &Transport{
-		Name: name,
-		transportMap: transportMap,
+		Name:           name,
+		transportMap:   transportMap,
 		shipmentOption: m.Sea,
-		sim: sim,
-		home: nil,
-		arriveAfter: 0,
-		cargoes: nil,
-		capacity: 1,
-		timeToLoad: 0 * time.Hour,
-		timeToUnload: 0 * time.Hour,
+		sim:            sim,
+		home:           nil,
+		arriveAfter:    0,
+		cargoes:        nil,
+		capacity:       1,
+		timeToLoad:     0 * time.Hour,
+		timeToUnload:   0 * time.Hour,
 	}
 }

@@ -11,13 +11,13 @@ type ShipmentOption = string
 
 const (
 	Land ShipmentOption = "land"
-	Sea = "sea"
+	Sea                 = "sea"
 )
 
 type Segment struct {
-	Origin *w.Warehouse
-	Destination *w.Warehouse
-	TimeToTravel time.Duration
+	Origin         *w.Warehouse
+	Destination    *w.Warehouse
+	TimeToTravel   time.Duration
 	shipmentOption ShipmentOption
 }
 
@@ -58,7 +58,7 @@ type Map struct {
 }
 
 func NewMap() *Map {
-	return  &Map{graph: make(map[w.LocationCode]map[w.LocationCode]Segment)}
+	return &Map{graph: make(map[w.LocationCode]map[w.LocationCode]Segment)}
 }
 
 func (m *Map) FindItinerary(origin, destination w.LocationCode) (Itinerary, error) {

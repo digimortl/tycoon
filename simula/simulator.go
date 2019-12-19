@@ -39,9 +39,9 @@ func (s *Simulator) NewEvent() *DelayedEvent {
 func (s *Simulator) NewEventAt(occurrenceTime time.Time) *DelayedEvent {
 	return &DelayedEvent{
 		createdAt: time.Now(),
-		occurAt: occurrenceTime,
-		sim:     s,
-		block:   make(chan bool),
+		occurAt:   occurrenceTime,
+		sim:       s,
+		block:     make(chan bool),
 	}
 }
 
@@ -78,11 +78,11 @@ func (s *Simulator) run() {
 	defer s.terminate()
 	for {
 		select {
-		case msg := <- s.schedule:
+		case msg := <-s.schedule:
 			anEvent := msg.Body.(*DelayedEvent)
 			s.pushAnEvent(anEvent)
 			msg.Ack()
-		case <- s.stop:
+		case <-s.stop:
 			return
 		}
 	}

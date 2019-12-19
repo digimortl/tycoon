@@ -4,9 +4,9 @@ import "time"
 
 type DelayedEvent struct {
 	createdAt time.Time
-	occurAt time.Time
-	sim     *Simulator
-	block   chan bool
+	occurAt   time.Time
+	sim       *Simulator
+	block     chan bool
 }
 
 func (e *DelayedEvent) Close() {
@@ -15,7 +15,7 @@ func (e *DelayedEvent) Close() {
 
 func (e *DelayedEvent) Suspend() {
 	e.sim.deactivateProcess()
-	<- e.block
+	<-e.block
 }
 
 func (e *DelayedEvent) Resume() {
@@ -24,7 +24,6 @@ func (e *DelayedEvent) Resume() {
 }
 
 type PriorityEventQueue []*DelayedEvent
-
 
 func (q *PriorityEventQueue) Less(i, j int) bool {
 	return (*q)[i].occurAt.Before((*q)[j].occurAt)
@@ -46,4 +45,3 @@ func (q *PriorityEventQueue) Pop() (v interface{}) {
 func (q *PriorityEventQueue) Push(v interface{}) {
 	*q = append(*q, v.(*DelayedEvent))
 }
-

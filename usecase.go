@@ -47,8 +47,8 @@ func UseCase(destinationCodes ...warehouse.LocationCode) time.Duration {
 	for trackNumber, destCode := range destinationCodes {
 		if isDestinationValid(destCode) {
 			cargoesToDeliver = append(cargoesToDeliver, &warehouse.Cargo{
-				TrackNumber: format(trackNumber+1),
-				Origin: factory.Location,
+				TrackNumber: format(trackNumber + 1),
+				Origin:      factory.Location,
 				Destination: destCode,
 			})
 		} else {
@@ -61,15 +61,15 @@ func UseCase(destinationCodes ...warehouse.LocationCode) time.Duration {
 	transportMap :=
 		m.NewMap().
 			ByLand(factory, port, time.Hour).
-			BySea(port, warehouseA, 4 * time.Hour).
-			ByLand(factory, warehouseB, 5 * time.Hour)
+			BySea(port, warehouseA, 4*time.Hour).
+			ByLand(factory, warehouseB, 5*time.Hour)
 
 	t.Truck("Truck 1", transportMap, sim).StartJourneyFrom(factory)
 	t.Truck("Truck 2", transportMap, sim).StartJourneyFrom(factory)
 	t.Vessel("Vessel 1", transportMap, sim).StartJourneyFrom(port)
 
-	tillCargoesHaveBeenDelivered := func () bool {
-		return warehouseA.Fullness() + warehouseB.Fullness() == len(cargoesToDeliver)
+	tillCargoesHaveBeenDelivered := func() bool {
+		return warehouseA.Fullness()+warehouseB.Fullness() == len(cargoesToDeliver)
 	}
 	sim.Proceed(tillCargoesHaveBeenDelivered)
 
@@ -84,5 +84,3 @@ func main() {
 	destCodes := destinationCodesFromArgs()
 	fmt.Println(UseCase(destCodes...))
 }
-
-

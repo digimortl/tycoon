@@ -26,4 +26,3 @@ func TestUseCases(t *testing.T) {
 		}
 	}
 }
-

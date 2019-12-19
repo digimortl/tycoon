@@ -9,7 +9,7 @@ type LocationCode = string
 
 type Cargo struct {
 	TrackNumber string
-	Origin LocationCode
+	Origin      LocationCode
 	Destination LocationCode
 }
 
@@ -58,7 +58,7 @@ func (w *Warehouse) addWaiter(waiter *simula.DelayedEvent) {
 }
 
 func (w *Warehouse) removeWaiter() *simula.DelayedEvent {
-	var waiter *simula.DelayedEvent  = nil
+	var waiter *simula.DelayedEvent = nil
 	if len(w.waiters) > 0 {
 		waiter, w.waiters = w.waiters[0], w.waiters[1:]
 	}
@@ -80,7 +80,7 @@ func (w *Warehouse) run() {
 	defer w.terminate()
 	for {
 		select {
-		case msg := <- w.bring:
+		case msg := <-w.bring:
 			aCargo := msg.Body.(*Cargo)
 			w.putCargo(aCargo)
 			if waiter := w.removeWaiter(); waiter != nil {
@@ -88,10 +88,10 @@ func (w *Warehouse) run() {
 				//waiter.Close()
 			}
 			msg.Ack()
-		case msg := <- w.pick:
+		case msg := <-w.pick:
 			aCargo := w.takeFirstCargo()
 			msg.Reply(aCargo)
-		case msg := <- w.waitForCargo:
+		case msg := <-w.waitForCargo:
 			waiter := msg.Body.(*simula.DelayedEvent)
 			if w.isEmpty() {
 				w.addWaiter(waiter)
@@ -99,7 +99,7 @@ func (w *Warehouse) run() {
 			} else {
 				msg.Reply(nil)
 			}
-		case <- w.stop:
+		case <-w.stop:
 			return
 		}
 	}
