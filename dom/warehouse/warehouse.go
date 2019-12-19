@@ -85,15 +85,14 @@ func (w *Warehouse) run() {
 			w.putCargo(aCargo)
 			if waiter := w.removeWaiter(); waiter != nil {
 				waiter.Resume()
-				//waiter.Close()
 			}
 			msg.Ack()
 		case msg := <-w.pick:
 			aCargo := w.takeFirstCargo()
 			msg.Reply(aCargo)
 		case msg := <-w.waitForCargo:
-			waiter := msg.Body.(*simula.DelayedEvent)
 			if w.isEmpty() {
+				waiter := w.sim.NewEvent()
 				w.addWaiter(waiter)
 				msg.Reply(waiter)
 			} else {
@@ -112,14 +111,14 @@ func (w *Warehouse) Bring(cargoes ...*Cargo) {
 }
 
 func (w *Warehouse) PickCargo() *Cargo {
-	answer := msgbox.SendAndReceive(w.pick, nil)
+	answer := msgbox.SendAndReceive(w.pick, msgbox.Whatever())
 	return answer.(*Cargo)
 }
 
 func (w *Warehouse) WaitForCargo() {
-	waiter := w.sim.NewEvent()
-	defer waiter.Close()
-	if msgbox.SendAndReceive(w.waitForCargo, waiter) != nil {
+	if answer := msgbox.SendAndReceive(w.waitForCargo, msgbox.Whatever()); answer != nil {
+		waiter := answer.(*simula.DelayedEvent)
+		defer waiter.Close()
 		waiter.Suspend()
 	}
 }

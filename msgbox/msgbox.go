@@ -10,7 +10,7 @@ func newMessage(body interface{}) Message {
 }
 
 func (m *Message) Ack() {
-	m.Reply(true)
+	m.Reply(Whatever())
 }
 
 func (m *Message) Reply(data interface{}) {
@@ -28,4 +28,9 @@ func SendAndReceive(box MessageBox, body interface{}) interface{} {
 
 func SendWithAck(box MessageBox, body interface{}) {
 	SendAndReceive(box, body)
+}
+
+
+func Whatever() interface{} {
+	return struct{}{}
 }

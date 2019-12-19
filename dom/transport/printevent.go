@@ -30,7 +30,7 @@ func PrintEvent(anEvent DomainEvent) {
 		case transmap.Land:
 			return "TRUCK"
 		case transmap.Sea:
-			return "SHIP"
+			return "VESSEL"
 		default:
 			return "UNKNOWN"
 		}
@@ -81,7 +81,8 @@ func PrintEvent(anEvent DomainEvent) {
 			Duration    float64 `json:"duration"`
 			Cargo       []cargo `json:"cargo"`
 		}{
-			toRelTime(anEvent.(Loaded).occurredAt),
+			toRelTime(anEvent.(Loaded).occurredAt.Add(
+				-anEvent.(Loaded).duration)),
 			"LOAD",
 			toKind(anEvent.(Loaded).shipmentOpt),
 			anEvent.(Loaded).transport,
@@ -96,7 +97,8 @@ func PrintEvent(anEvent DomainEvent) {
 			TarnsportId string  `json:"transport_id"`
 			Duration    float64 `json:"duration"`
 		}{
-			toRelTime(anEvent.(Unloaded).occurredAt),
+			toRelTime(anEvent.(Unloaded).occurredAt.Add(-
+				anEvent.(Unloaded).duration)),
 			"UNLOAD",
 			toKind(anEvent.(Unloaded).shipmentOpt),
 			anEvent.(Unloaded).transport,
