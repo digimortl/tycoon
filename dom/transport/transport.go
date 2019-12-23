@@ -3,22 +3,24 @@ package transport
 import (
 	"time"
 
+	"github.com/digimortl/tycoon/dom/event"
 	m "github.com/digimortl/tycoon/dom/transmap"
 	w "github.com/digimortl/tycoon/dom/warehouse"
 	"github.com/digimortl/tycoon/simula"
 )
 
 type Transport struct {
-	Name           string
-	transportMap   *m.Map
-	shipmentOption m.ShipmentOption
-	sim            *simula.Simulator
-	home           *w.Warehouse
-	arriveAfter    time.Duration
-	cargoes        []*w.Cargo
-	capacity       int
-	timeToLoad     time.Duration
-	timeToUnload   time.Duration
+	Name              string
+	transportMap      *m.Map
+	shipmentOption    m.ShipmentOption
+	sim               *simula.Simulator
+	home              *w.Warehouse
+	arriveAtHomeAfter time.Duration
+	cargoes           []*w.Cargo
+	capacity          int
+	timeToLoad        time.Duration
+	timeToUnload      time.Duration
+	log               chan event.DomainEvent
 }
 
 func (t *Transport) isFull() bool {
@@ -65,63 +67,63 @@ func (t *Transport) findItineraryFrom(warehouse *w.Warehouse) m.Itinerary {
 }
 
 func (t *Transport) Run() {
-	PrintEvent(Arrived{
-		occurredAt:  t.holdFor(t.arriveAfter),
-		transport:   t.Name,
-		shipmentOpt: t.shipmentOption,
-		atLocation:  t.home.Location,
-	})
+	t.log <- Arrived{
+		OccurredAt:  t.holdFor(t.arriveAtHomeAfter),
+		Transport:   t.Name,
+		ShipmentOpt: t.shipmentOption,
+		AtLocation:  t.home.Location,
+	}
 
 	t.loadCargoesFrom(t.home)
-	PrintEvent(Loaded{
-		occurredAt:  t.holdFor(t.timeToLoad),
-		transport:   t.Name,
-		shipmentOpt: t.shipmentOption,
-		duration:    t.timeToLoad,
-		cargoes:     append(t.cargoes),
-	})
+	t.log <- Loaded{
+		OccurredAt:  t.holdFor(t.timeToLoad),
+		Transport:   t.Name,
+		ShipmentOpt: t.shipmentOption,
+		Duration:    t.timeToLoad,
+		Cargoes:     append(t.cargoes),
+	}
 
 	itinerary := t.findItineraryFrom(t.home)
-	PrintEvent(Departed{
-		occurredAt:   t.holdFor(0),
-		transport:    t.Name,
-		shipmentOpt:  t.shipmentOption,
-		fromLocation: t.home.Location,
-		toLocation:   itinerary.Destination().Location,
-		cargoes:      append(t.cargoes),
-	})
+	t.log <- Departed{
+		OccurredAt:   t.holdFor(0),
+		Transport:    t.Name,
+		ShipmentOpt:  t.shipmentOption,
+		FromLocation: t.home.Location,
+		ToLocation:   itinerary.Destination().Location,
+		Cargoes:      append(t.cargoes),
+	}
 
-	PrintEvent(Arrived{
-		occurredAt:  t.holdFor(itinerary.TotalTimeToTravel()),
-		transport:   t.Name,
-		shipmentOpt: t.shipmentOption,
-		atLocation:  itinerary.Destination().Location,
-		cargoes:     append(t.cargoes),
-	})
+	t.log <- Arrived{
+		OccurredAt:  t.holdFor(itinerary.TotalTimeToTravel()),
+		Transport:   t.Name,
+		ShipmentOpt: t.shipmentOption,
+		AtLocation:  itinerary.Destination().Location,
+		Cargoes:     append(t.cargoes),
+	}
 
 	unloadTime := t.holdFor(t.timeToUnload)
 	t.unloadCargoesTo(itinerary.Destination())
-	PrintEvent(Unloaded{
-		occurredAt:  unloadTime,
-		transport:   t.Name,
-		shipmentOpt: t.shipmentOption,
-		duration:    t.timeToUnload,
-	})
+	t.log <- Unloaded{
+		OccurredAt:  unloadTime,
+		Transport:   t.Name,
+		ShipmentOpt: t.shipmentOption,
+		Duration:    t.timeToUnload,
+	}
 
-	PrintEvent(Departed{
-		occurredAt:   t.holdFor(0),
-		transport:    t.Name,
-		shipmentOpt:  t.shipmentOption,
-		fromLocation: itinerary.Destination().Location,
-		toLocation:   t.home.Location,
-	})
+	t.log <- Departed{
+		OccurredAt:   t.holdFor(0),
+		Transport:    t.Name,
+		ShipmentOpt:  t.shipmentOption,
+		FromLocation: itinerary.Destination().Location,
+		ToLocation:   t.home.Location,
+	}
 
-	t.arriveAfter = itinerary.TotalTimeToTravel()
+	t.arriveAtHomeAfter = itinerary.TotalTimeToTravel()
 	t.Run()
 }
 
 func (t *Transport) StartJourneyFrom(warehouse *w.Warehouse) {
-	t.home, t.arriveAfter = warehouse, 0
+	t.home, t.arriveAtHomeAfter = warehouse, 0
 	t.sim.Spawn(t)
 }
 
@@ -129,23 +131,25 @@ func (t *Transport) holdFor(duration time.Duration) time.Time {
 	return t.sim.WakeUpAfter(duration)
 }
 
-func Truck(name string, transportMap *m.Map, sim *simula.Simulator) *Transport {
+func Truck(name string, transportMap *m.Map, sim *simula.Simulator, log event.Stream) *Transport {
 	return &Transport{
 		Name:           name,
 		transportMap:   transportMap,
 		shipmentOption: m.Land,
 		sim:            sim,
 		capacity:       1,
+		log:            log,
 	}
 }
 
-func Vessel(name string, transportMap *m.Map, sim *simula.Simulator) *Transport {
+func Vessel(name string, transportMap *m.Map, sim *simula.Simulator, log event.Stream) *Transport {
 	return &Transport{
 		Name:           name,
 		transportMap:   transportMap,
 		shipmentOption: m.Sea,
 		sim:            sim,
 		capacity:       1,
+		log:            log,
 	}
 }
 

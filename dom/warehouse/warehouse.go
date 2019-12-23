@@ -13,8 +13,6 @@ type Cargo struct {
 	Destination LocationCode
 }
 
-type Req = chan *Cargo
-
 type Warehouse struct {
 	Location     LocationCode
 	cargoes      []*Cargo

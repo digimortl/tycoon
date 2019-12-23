@@ -30,7 +30,6 @@ func SendWithAck(box MessageBox, body interface{}) {
 	SendAndReceive(box, body)
 }
 
-
 func Whatever() interface{} {
 	return struct{}{}
 }

@@ -1,15 +1,17 @@
-package transport
+package main
 
 import (
 	"encoding/json"
 	"fmt"
 	"time"
 
+	"github.com/digimortl/tycoon/dom/event"
 	"github.com/digimortl/tycoon/dom/transmap"
+	"github.com/digimortl/tycoon/dom/transport"
 	"github.com/digimortl/tycoon/dom/warehouse"
 )
 
-func PrintEvent(anEvent DomainEvent) {
+func printEvent(anEvent event.DomainEvent) {
 	toRelTime := func(tm time.Time) float64 {
 		return tm.Sub(time.Time{}).Hours()
 	}
@@ -38,7 +40,7 @@ func PrintEvent(anEvent DomainEvent) {
 
 	var s interface{}
 	switch anEvent.(type) {
-	case Arrived:
+	case transport.Arrived:
 		s = struct {
 			Time        float64 `json:"time"`
 			Event       string  `json:"event"`
@@ -47,14 +49,14 @@ func PrintEvent(anEvent DomainEvent) {
 			Location    string  `json:"location"`
 			Cargo       []cargo `json:"cargo"`
 		}{
-			toRelTime(anEvent.(Arrived).occurredAt),
+			toRelTime(anEvent.(transport.Arrived).OccurredAt),
 			"ARRIVE",
-			toKind(anEvent.(Arrived).shipmentOpt),
-			anEvent.(Arrived).transport,
-			anEvent.(Arrived).atLocation,
-			toCargoes(anEvent.(Arrived).cargoes),
+			toKind(anEvent.(transport.Arrived).ShipmentOpt),
+			anEvent.(transport.Arrived).Transport,
+			anEvent.(transport.Arrived).AtLocation,
+			toCargoes(anEvent.(transport.Arrived).Cargoes),
 		}
-	case Departed:
+	case transport.Departed:
 		s = struct {
 			Time        float64 `json:"time"`
 			Event       string  `json:"event"`
@@ -64,15 +66,15 @@ func PrintEvent(anEvent DomainEvent) {
 			Destination string  `json:"destination"`
 			Cargo       []cargo `json:"cargo"`
 		}{
-			toRelTime(anEvent.(Departed).occurredAt),
+			toRelTime(anEvent.(transport.Departed).OccurredAt),
 			"DEPART",
-			toKind(anEvent.(Departed).shipmentOpt),
-			anEvent.(Departed).transport,
-			anEvent.(Departed).fromLocation,
-			anEvent.(Departed).toLocation,
-			toCargoes(anEvent.(Departed).cargoes),
+			toKind(anEvent.(transport.Departed).ShipmentOpt),
+			anEvent.(transport.Departed).Transport,
+			anEvent.(transport.Departed).FromLocation,
+			anEvent.(transport.Departed).ToLocation,
+			toCargoes(anEvent.(transport.Departed).Cargoes),
 		}
-	case Loaded:
+	case transport.Loaded:
 		s = struct {
 			Time        float64 `json:"time"`
 			Event       string  `json:"event"`
@@ -81,15 +83,15 @@ func PrintEvent(anEvent DomainEvent) {
 			Duration    float64 `json:"duration"`
 			Cargo       []cargo `json:"cargo"`
 		}{
-			toRelTime(anEvent.(Loaded).occurredAt.Add(
-				-anEvent.(Loaded).duration)),
+			toRelTime(anEvent.(transport.Loaded).OccurredAt.Add(
+				-anEvent.(transport.Loaded).Duration)),
 			"LOAD",
-			toKind(anEvent.(Loaded).shipmentOpt),
-			anEvent.(Loaded).transport,
-			anEvent.(Loaded).duration.Hours(),
-			toCargoes(anEvent.(Loaded).cargoes),
+			toKind(anEvent.(transport.Loaded).ShipmentOpt),
+			anEvent.(transport.Loaded).Transport,
+			anEvent.(transport.Loaded).Duration.Hours(),
+			toCargoes(anEvent.(transport.Loaded).Cargoes),
 		}
-	case Unloaded:
+	case transport.Unloaded:
 		s = struct {
 			Time        float64 `json:"time"`
 			Event       string  `json:"event"`
@@ -97,12 +99,11 @@ func PrintEvent(anEvent DomainEvent) {
 			TarnsportId string  `json:"transport_id"`
 			Duration    float64 `json:"duration"`
 		}{
-			toRelTime(anEvent.(Unloaded).occurredAt.Add(-
-				anEvent.(Unloaded).duration)),
+			toRelTime(anEvent.(transport.Unloaded).OccurredAt.Add(-anEvent.(transport.Unloaded).Duration)),
 			"UNLOAD",
-			toKind(anEvent.(Unloaded).shipmentOpt),
-			anEvent.(Unloaded).transport,
-			anEvent.(Unloaded).duration.Hours(),
+			toKind(anEvent.(transport.Unloaded).ShipmentOpt),
+			anEvent.(transport.Unloaded).Transport,
+			anEvent.(transport.Unloaded).Duration.Hours(),
 		}
 	default:
 		s = nil

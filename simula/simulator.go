@@ -108,7 +108,7 @@ func (s *Simulator) Stop() {
 	s.stop <- true
 }
 
-func (s *Simulator) Proceed(till func() bool) time.Duration{
+func (s *Simulator) Proceed(till func() bool) time.Duration {
 	for {
 		s.waitTillProcessesGone()
 

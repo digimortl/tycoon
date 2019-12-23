@@ -7,36 +7,34 @@ import (
 	"github.com/digimortl/tycoon/dom/warehouse"
 )
 
-type DomainEvent interface{}
-
 type Arrived struct {
-	occurredAt  time.Time
-	transport   string
-	shipmentOpt transmap.ShipmentOption
-	atLocation  warehouse.LocationCode
-	cargoes     []*warehouse.Cargo
+	OccurredAt  time.Time
+	Transport   string
+	ShipmentOpt transmap.ShipmentOption
+	AtLocation  warehouse.LocationCode
+	Cargoes     []*warehouse.Cargo
 }
 
 type Departed struct {
-	occurredAt   time.Time
-	transport    string
-	shipmentOpt  transmap.ShipmentOption
-	fromLocation warehouse.LocationCode
-	toLocation   warehouse.LocationCode
-	cargoes      []*warehouse.Cargo
+	OccurredAt   time.Time
+	Transport    string
+	ShipmentOpt  transmap.ShipmentOption
+	FromLocation warehouse.LocationCode
+	ToLocation   warehouse.LocationCode
+	Cargoes      []*warehouse.Cargo
 }
 
 type Loaded struct {
-	occurredAt  time.Time
-	transport   string
-	shipmentOpt transmap.ShipmentOption
-	cargoes     []*warehouse.Cargo
-	duration    time.Duration
+	OccurredAt  time.Time
+	Transport   string
+	ShipmentOpt transmap.ShipmentOption
+	Cargoes     []*warehouse.Cargo
+	Duration    time.Duration
 }
 
 type Unloaded struct {
-	occurredAt  time.Time
-	transport   string
-	shipmentOpt transmap.ShipmentOption
-	duration    time.Duration
+	OccurredAt  time.Time
+	Transport   string
+	ShipmentOpt transmap.ShipmentOption
+	Duration    time.Duration
 }

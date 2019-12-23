@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/digimortl/tycoon/dom/event"
 	"os"
 	"strings"
 	"time"
@@ -14,6 +15,17 @@ import (
 
 func format(trackNumber int) string {
 	return fmt.Sprintf("%05d", trackNumber)
+}
+
+func newEventStream(handler func(event.DomainEvent)) event.Stream {
+	es := make(event.Stream)
+	go func() {
+		defer close(es)
+		for ev := range es {
+			handler(ev)
+		}
+	}()
+	return es
 }
 
 func UseCase1(destinationCodes ...warehouse.LocationCode) time.Duration {
@@ -64,9 +76,11 @@ func UseCase1(destinationCodes ...warehouse.LocationCode) time.Duration {
 			BySea(port, warehouseA, 4*time.Hour).
 			ByLand(factory, warehouseB, 5*time.Hour)
 
-	transport.Truck("Truck 1", transportMap, sim).StartJourneyFrom(factory)
-	transport.Truck("Truck 2", transportMap, sim).StartJourneyFrom(factory)
-	transport.Vessel("Vessel 1", transportMap, sim).StartJourneyFrom(port)
+	nullEventStream := newEventStream(func(_ event.DomainEvent) {})
+
+	transport.Truck("Truck 1", transportMap, sim, nullEventStream).StartJourneyFrom(factory)
+	transport.Truck("Truck 2", transportMap, sim, nullEventStream).StartJourneyFrom(factory)
+	transport.Vessel("Vessel 1", transportMap, sim, nullEventStream).StartJourneyFrom(port)
 
 	tillCargoesHaveBeenDelivered := func() bool {
 		return warehouseA.Fullness()+warehouseB.Fullness() == len(cargoesToDeliver)
@@ -118,17 +132,19 @@ func UseCase2(destinationCodes ...warehouse.LocationCode) time.Duration {
 			BySea(port, warehouseA, 6*time.Hour).
 			ByLand(factory, warehouseB, 5*time.Hour)
 
-	transport.Truck("Truck 1", transportMap, sim).
-			StartJourneyFrom(factory)
+	printingEventStream := newEventStream(printEvent)
 
-	transport.Truck("Truck 2", transportMap, sim).
-			StartJourneyFrom(factory)
+	transport.Truck("Truck 1", transportMap, sim, printingEventStream).
+		StartJourneyFrom(factory)
 
-	transport.Vessel("Vessel 1", transportMap, sim).
-			WithCapacity(4).
-			WithLoadTime(1*time.Hour).
-			WithUnloadTime(1*time.Hour).
-			StartJourneyFrom(port)
+	transport.Truck("Truck 2", transportMap, sim, printingEventStream).
+		StartJourneyFrom(factory)
+
+	transport.Vessel("Vessel 1", transportMap, sim, printingEventStream).
+		WithCapacity(4).
+		WithLoadTime(1 * time.Hour).
+		WithUnloadTime(1 * time.Hour).
+		StartJourneyFrom(port)
 
 	tillCargoesHaveBeenDelivered := func() bool {
 		return warehouseA.Fullness()+warehouseB.Fullness() == len(cargoesToDeliver)
@@ -136,7 +152,7 @@ func UseCase2(destinationCodes ...warehouse.LocationCode) time.Duration {
 	return sim.Proceed(tillCargoesHaveBeenDelivered)
 }
 
-func destCodes(args []string) [] string {
+func destCodes(args []string) []string {
 	return strings.Split(strings.Join(args, ""), "")
 }
 

@@ -18,3 +18,17 @@ Second usecase (Exercise 2)
 ABBBABAAABBB -> 39 hours
 
 See ./traces directory to investigate domain events.
+
+How to build/run:
+
+GOROOT=/path/to/sdk/go1.13.5
+GOPATH=/path/to/workspace
+${GOROOT}/go build -o ${GOPATH}/bin/tycoon
+${GOPATH}/bin/tycoon exercise-2 ABBBABAAABBB
+
+How to test:
+
+GOROOT=/path/to/sdk/go1.13.5
+GOPATH=/path/to/workspace
+${GOROOT}/go test -c -o /tmp/usecase_test_go github.com/digimortl/tycoon
+${GOROOT}/go tool test2json -t /tmp/usecase_test_go -test.v -test.run "^TestUseCase1|TestUseCase2$"
