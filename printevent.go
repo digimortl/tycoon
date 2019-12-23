@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"time"
 
 	"github.com/digimortl/tycoon/dom/event"
@@ -11,7 +12,7 @@ import (
 	"github.com/digimortl/tycoon/dom/warehouse"
 )
 
-func printEvent(anEvent event.DomainEvent) {
+func printEventToStdout(anEvent event.DomainEvent) {
 	toRelTime := func(tm time.Time) float64 {
 		return tm.Sub(time.Time{}).Hours()
 	}
@@ -110,6 +111,6 @@ func printEvent(anEvent event.DomainEvent) {
 	}
 	jsonData, err := json.Marshal(s)
 	if err == nil {
-		fmt.Println(string(jsonData))
+		fmt.Fprintln(os.Stdout, string(jsonData))
 	}
 }

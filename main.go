@@ -2,50 +2,33 @@ package main
 
 import (
 	"fmt"
-	"github.com/digimortl/tycoon/dom/event"
 	"os"
 	"strings"
 	"time"
 
 	m "github.com/digimortl/tycoon/dom/transmap"
-	"github.com/digimortl/tycoon/dom/transport"
 	"github.com/digimortl/tycoon/dom/warehouse"
-	"github.com/digimortl/tycoon/simula"
+	"github.com/digimortl/tycoon/usecase"
 )
 
 func format(trackNumber int) string {
 	return fmt.Sprintf("%05d", trackNumber)
 }
 
-func newEventStream(handler func(event.DomainEvent)) event.Stream {
-	es := make(event.Stream)
-	go func() {
-		defer close(es)
-		for ev := range es {
-			handler(ev)
-		}
-	}()
-	return es
-}
-
 func UseCase1(destinationCodes ...warehouse.LocationCode) time.Duration {
-	if len(destinationCodes) == 0 {
-		return time.Duration(0)
-	}
+	ctx := usecase.NewContext()
+	defer ctx.Close()
 
-	sim := simula.NewSimulator()
-	defer sim.Stop()
-
-	factory := warehouse.Of("Factory", sim)
+	factory := ctx.WarehouseOf("Factory")
 	defer factory.Stop()
 
-	port := warehouse.Of("Port", sim)
+	port := ctx.WarehouseOf("Port")
 	defer port.Stop()
 
-	warehouseA := warehouse.Of("A", sim)
+	warehouseA := ctx.WarehouseOf("A")
 	defer warehouseA.Stop()
 
-	warehouseB := warehouse.Of("B", sim)
+	warehouseB := ctx.WarehouseOf("B")
 	defer warehouseB.Stop()
 
 	isDestinationValid := func(dest warehouse.LocationCode) bool {
@@ -76,32 +59,34 @@ func UseCase1(destinationCodes ...warehouse.LocationCode) time.Duration {
 			BySea(port, warehouseA, 4*time.Hour).
 			ByLand(factory, warehouseB, 5*time.Hour)
 
-	nullEventStream := newEventStream(func(_ event.DomainEvent) {})
-
-	transport.Truck("Truck 1", transportMap, sim, nullEventStream).StartJourneyFrom(factory)
-	transport.Truck("Truck 2", transportMap, sim, nullEventStream).StartJourneyFrom(factory)
-	transport.Vessel("Vessel 1", transportMap, sim, nullEventStream).StartJourneyFrom(port)
+	ctx.Truck("Truck 1", transportMap).
+			StartJourneyFrom(factory)
+	ctx.Truck("Truck 2", transportMap).
+			StartJourneyFrom(factory)
+	ctx.Vessel("Vessel 1", transportMap).
+			StartJourneyFrom(port)
 
 	tillCargoesHaveBeenDelivered := func() bool {
 		return warehouseA.Fullness()+warehouseB.Fullness() == len(cargoesToDeliver)
 	}
-	return sim.Proceed(tillCargoesHaveBeenDelivered)
+	return ctx.Simulator().Proceed(tillCargoesHaveBeenDelivered)
 }
 
 func UseCase2(destinationCodes ...warehouse.LocationCode) time.Duration {
-	sim := simula.NewSimulator()
-	defer sim.Stop()
+	ctx := usecase.NewContext().
+		WithEventHandler(printEventToStdout)
+	defer ctx.Close()
 
-	factory := warehouse.Of("Factory", sim)
+	factory := ctx.WarehouseOf("Factory")
 	defer factory.Stop()
 
-	port := warehouse.Of("Port", sim)
+	port := ctx.WarehouseOf("Port")
 	defer port.Stop()
 
-	warehouseA := warehouse.Of("A", sim)
+	warehouseA := ctx.WarehouseOf("A")
 	defer warehouseA.Stop()
 
-	warehouseB := warehouse.Of("B", sim)
+	warehouseB := ctx.WarehouseOf("B")
 	defer warehouseB.Stop()
 
 	isDestinationValid := func(dest warehouse.LocationCode) bool {
@@ -132,15 +117,15 @@ func UseCase2(destinationCodes ...warehouse.LocationCode) time.Duration {
 			BySea(port, warehouseA, 6*time.Hour).
 			ByLand(factory, warehouseB, 5*time.Hour)
 
-	printingEventStream := newEventStream(printEvent)
 
-	transport.Truck("Truck 1", transportMap, sim, printingEventStream).
+
+	ctx.Truck("Truck 1", transportMap).
 		StartJourneyFrom(factory)
 
-	transport.Truck("Truck 2", transportMap, sim, printingEventStream).
+	ctx.Truck("Truck 2", transportMap).
 		StartJourneyFrom(factory)
 
-	transport.Vessel("Vessel 1", transportMap, sim, printingEventStream).
+	ctx.Vessel("Vessel 1", transportMap).
 		WithCapacity(4).
 		WithLoadTime(1 * time.Hour).
 		WithUnloadTime(1 * time.Hour).
@@ -149,7 +134,7 @@ func UseCase2(destinationCodes ...warehouse.LocationCode) time.Duration {
 	tillCargoesHaveBeenDelivered := func() bool {
 		return warehouseA.Fullness()+warehouseB.Fullness() == len(cargoesToDeliver)
 	}
-	return sim.Proceed(tillCargoesHaveBeenDelivered)
+	return ctx.Simulator().Proceed(tillCargoesHaveBeenDelivered)
 }
 
 func destCodes(args []string) []string {
