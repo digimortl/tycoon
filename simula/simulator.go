@@ -58,13 +58,13 @@ func (s *Simulator) waitTillProcessesGone() {
 }
 
 func (s *Simulator) hasNoEvents() bool {
-	return len(s.scheduledEvents) == 0
+	return s.scheduledEvents.Len() == 0
 }
 
 func (s *Simulator) pushAnEvent(anEvent *DelayedEvent) {
 	heap.Push(&s.scheduledEvents, anEvent)
 }
-func (s *Simulator) popAnEvent() *DelayedEvent {
+func (s *Simulator) popNextEvent() *DelayedEvent {
 	elem := heap.Pop(&s.scheduledEvents)
 	return elem.(*DelayedEvent)
 }
@@ -91,7 +91,7 @@ func (s *Simulator) run() {
 func (s *Simulator) WakeUpAfter(duration time.Duration) time.Time {
 	anEvent := s.NewEventAt(s.currentTime.Add(duration))
 	defer anEvent.Close()
-	msgbox.SendWithAck(s.schedule, anEvent)
+	s.schedule.SendWithAck(anEvent)
 	anEvent.Suspend()
 	return s.currentTime
 }
@@ -116,7 +116,7 @@ func (s *Simulator) Proceed(till func() bool) time.Duration {
 			break
 		}
 
-		anEvent := s.popAnEvent()
+		anEvent := s.popNextEvent()
 		s.currentTime = anEvent.occurAt
 		anEvent.Resume()
 	}

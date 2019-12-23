@@ -104,17 +104,17 @@ func (w *Warehouse) run() {
 
 func (w *Warehouse) Bring(cargoes ...*Cargo) {
 	for _, aCargo := range cargoes {
-		msgbox.SendWithAck(w.bring, aCargo)
+		w.bring.SendWithAck(aCargo)
 	}
 }
 
 func (w *Warehouse) PickCargo() *Cargo {
-	answer := msgbox.SendAndReceive(w.pick, msgbox.Whatever())
+	answer := w.pick.SendAndReceive(msgbox.Whatever())
 	return answer.(*Cargo)
 }
 
 func (w *Warehouse) WaitForCargo() {
-	if answer := msgbox.SendAndReceive(w.waitForCargo, msgbox.Whatever()); answer != nil {
+	if answer := w.waitForCargo.SendAndReceive(msgbox.Whatever()); answer != nil {
 		waiter := answer.(*simula.DelayedEvent)
 		defer waiter.Close()
 		waiter.Suspend()

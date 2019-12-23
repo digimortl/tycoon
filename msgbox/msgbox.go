@@ -17,17 +17,17 @@ func (m *Message) Reply(data interface{}) {
 	m.reply <- data
 }
 
-type MessageBox = chan Message
+type MessageBox chan Message
 
-func SendAndReceive(box MessageBox, body interface{}) interface{} {
+func (box *MessageBox) SendAndReceive(body interface{}) interface{} {
 	msg := newMessage(body)
 	defer close(msg.reply)
-	box <- msg
+	*box <- msg
 	return <-msg.reply
 }
 
-func SendWithAck(box MessageBox, body interface{}) {
-	SendAndReceive(box, body)
+func (box *MessageBox) SendWithAck(body interface{}) {
+	box.SendAndReceive(body)
 }
 
 func Whatever() interface{} {
