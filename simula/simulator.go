@@ -53,7 +53,7 @@ func (s *Simulator) deactivateProcess() {
 	s.activeProcesses.Done()
 }
 
-func (s *Simulator) waitTillProcessesGone() {
+func (s *Simulator) waitTillThereAreNoActiveProcesses() {
 	s.activeProcesses.Wait()
 }
 
@@ -108,11 +108,13 @@ func (s *Simulator) Stop() {
 	s.stop <- true
 }
 
-func (s *Simulator) Proceed(till func() bool) time.Duration {
-	for {
-		s.waitTillProcessesGone()
+type StopCondition func() bool
 
-		if s.hasNoEvents() || till() {
+func (s *Simulator) Proceed(wasStopConditionReached StopCondition) time.Duration {
+	for {
+		s.waitTillThereAreNoActiveProcesses()
+
+		if s.hasNoEvents() || wasStopConditionReached() {
 			break
 		}
 
