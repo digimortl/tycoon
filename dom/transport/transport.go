@@ -80,7 +80,7 @@ func (t *Transport) Run() {
 		Transport:   t.Name,
 		ShipmentOpt: t.shipmentOption,
 		Duration:    t.timeToLoad,
-		Cargoes:     append(t.cargoes),
+		Cargoes:     t.cargoes[:],
 	}
 
 	itinerary := t.findItineraryFrom(t.home)
@@ -90,7 +90,7 @@ func (t *Transport) Run() {
 		ShipmentOpt:  t.shipmentOption,
 		FromLocation: t.home.Location,
 		ToLocation:   itinerary.Destination().Location,
-		Cargoes:      append(t.cargoes),
+		Cargoes:      t.cargoes[:],
 	}
 
 	t.log <- Arrived{
@@ -98,7 +98,7 @@ func (t *Transport) Run() {
 		Transport:   t.Name,
 		ShipmentOpt: t.shipmentOption,
 		AtLocation:  itinerary.Destination().Location,
-		Cargoes:     append(t.cargoes),
+		Cargoes:     t.cargoes[:],
 	}
 
 	unloadTime := t.holdFor(t.timeToUnload)

@@ -134,6 +134,8 @@ func UseCase2(destinationCodes ...warehouse.LocationCode) time.Duration {
 	tillCargoesHaveBeenDelivered := func() bool {
 		return warehouseA.Fullness()+warehouseB.Fullness() == len(cargoesToDeliver)
 	}
+	// NOTE The last event can be unhandled due to this return can cause an immediate return from the main program.
+	// NOTE So it'd be nice to implement graceful termination of event stream goroutine.
 	return ctx.Simulator().Proceed(tillCargoesHaveBeenDelivered)
 }
 

@@ -110,11 +110,11 @@ func (s *Simulator) Stop() {
 
 type StopCondition func() bool
 
-func (s *Simulator) Proceed(wasStopConditionReached StopCondition) time.Duration {
+func (s *Simulator) Proceed(hasStopConditionReached StopCondition) time.Duration {
 	for {
 		s.waitTillThereAreNoActiveProcesses()
 
-		if s.hasNoEvents() || wasStopConditionReached() {
+		if s.hasNoEvents() || hasStopConditionReached() {
 			break
 		}
 
